@@ -3,13 +3,14 @@
 
 import { Request, Response } from "express-serve-static-core";
 import { firestore } from "firebase";
-import { Event, Org, OrgUser, StudentUser } from "./types"
+import { Event, Org, OrgUser, StudentUser, JSONResponse } from "./types"
 import { EventRequest, CreateUserRequest, GetUserRequest, DeleteUserRequest } from "./requestTypes";
 import * as commonOps from "./util/commonOps";
 import { v4 as uuid } from 'uuid';
 
-export async function createUser(db: firestore.Firestore, req: Request, res: Response) {
-  let request = req.body as CreateUserRequest;
+export async function createUser(db: firestore.Firestore, body: any): Promise<JSONResponse> {
+  let request = body as CreateUserRequest;
+  let retVal: JSONResponse = { status: 400, output: "No response given! createUser" };
   if (request.isOrgUser) {
     let orgUser: OrgUser = {
       name: request.name,
@@ -21,10 +22,10 @@ export async function createUser(db: firestore.Firestore, req: Request, res: Res
       async doc => {
         let orgUserDoc = doc;
         if (orgUserDoc.exists) {
-          res.status(400).json({ error: "OrgUser already exists!" });
+          retVal = { status: 400, output: { error: "OrgUser already exists!" } } as JSONResponse;
         } else {
           await orgUserRef.set(orgUser);
-          res.status(200).json(orgUser);
+          retVal = { status: 200, output: orgUser } as JSONResponse;
         }
       }
     );
@@ -39,48 +40,53 @@ export async function createUser(db: firestore.Firestore, req: Request, res: Res
       async doc => {
         let studentUserDoc = doc;
         if (studentUserDoc.exists) {
-          res.status(400).json({ error: "StudentUser already exists!" });
+          retVal = { status: 400, output: { error: "StudentUser already exists!" } } as JSONResponse;
         } else {
           await studentUserRef.set(studentUser);
-          res.status(200).json(studentUser);
+          retVal = { status: 200, output: studentUser } as JSONResponse;
         }
       }
     );
   }
+  return retVal;
 }
 
-export async function getUser(db: firestore.Firestore, req: Request, res: Response) {
-  let request = req.body as GetUserRequest;
+export async function getUser(db: firestore.Firestore, body: any) {
+  let request = body as GetUserRequest;
+  let retVal: JSONResponse = { status: 400, output: "No response given! getUser" };
   if (request.isOrgUser) {
     let orgUserDocRef = db.collection('orgUsers').doc(`${request.email.toLowerCase()}`);
     await orgUserDocRef.get().then(doc => {
       if (doc.exists) {
-        res.status(200).json(doc.data());
+        retVal = { status: 200, output: doc.data() } as JSONResponse;
       } else {
-        res.status(404).json({ error: "OrgUser with email: " + `${request.email.toLowerCase()}` + " not found!" });
+        retVal = { status: 404, output: { error: "OrgUser with email: " + `${request.email.toLowerCase()}` + " not found!" } } as JSONResponse;
       }
     });
   } else {
     let studentUserDocRef = db.collection('studentUsers').doc(`${request.email.toLowerCase()}`);
     await studentUserDocRef.get().then(doc => {
       if (doc.exists) {
-        res.status(200).json(doc.data());
+        retVal = { status: 200, output: doc.data() } as JSONResponse;
       } else {
-        res.status(404).json({ error: "StudentUser with email: " + `${request.email.toLowerCase()}` + " not found!" });
+        retVal = { status: 404, output: { error: "StudentUser with email: " + `${request.email.toLowerCase()}` + " not found!" } } as JSONResponse;
       }
     });
   }
+  return retVal;
 }
 
-export async function deleteUser(db: firestore.Firestore, req: Request, res: Response) {
-  let request = req.body as DeleteUserRequest;
+export async function deleteUser(db: firestore.Firestore, body: any) {
+  let request = body as DeleteUserRequest;
+  let retVal: JSONResponse;
   if (request.isOrgUser) {
     let orgUserDocRef = db.collection('orgUsers').doc(`${request.email.toLowerCase()}`);
     await orgUserDocRef.delete();
-    res.status(200).json({ deleted: true });
+    retVal = { status: 200, output: { deleted: true } } as JSONResponse;
   } else {
     let studentUserDocRef = db.collection('studentUsers').doc(`${request.email.toLowerCase()}`);
     await studentUserDocRef.delete();
-    res.status(200).json({ deleted: true });
+    retVal = { status: 200, output: { deleted: true } } as JSONResponse;
   }
+  return retVal;
 }

@@ -1,18 +1,8 @@
 import * as testExtensions from './testExtensions';
 import { isUndefined } from 'util';
+import { db } from '../app';
 const chalk = require('chalk');
 var fs = require('fs');
-
-// Firebase --------------------------------------------------------------------
-let admin = require('firebase-admin');
-let serviceAccount = require('../../secrets/eventsbackenddatabase-firebase-adminsdk-ukak2-d1b3a5ef55.json');
-
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
-  databaseURL: "https://eventsbackenddatabase.firebaseio.com"
-});
-let db = admin.firestore();
-// -----------------------------------------------------------------------------
 
 let FgRed = "\x1b[31m"
 let FgGreen = "\x1b[32m"

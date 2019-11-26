@@ -54,3 +54,8 @@ export type StudentUser = {
   name: string;
   email: string;
 }
+
+export type JSONResponse = {
+  output: any;
+  status: number;
+}

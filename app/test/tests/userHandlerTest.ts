@@ -2,6 +2,7 @@ import * as userHandler from '../../userHandler';
 import { firestore } from 'firebase';
 import { expect } from '../testExtensions';
 import * as runTests from '../runTests';
+import * as app from '../../app';
 var MockExpressRequest = require('mock-express-request');
 var MockExpressResponse = require('mock-express-response');
 
@@ -21,7 +22,7 @@ export async function runDeleteTest(db: firestore.Firestore) {
     }
   );
   let mockRespsonse = new MockExpressResponse();
-  await userHandler.deleteUser(db, mockRequest, mockRespsonse);
+  await app.delegateThread('./userHandler', userHandler.deleteUser, mockRequest, mockRespsonse);
   let docExists;
   await db.collection('orgUsers').doc(mockRequest.body.email).get().then(doc => {
     docExists = doc.exists;
@@ -43,7 +44,7 @@ export async function runCreateTest(db: firestore.Firestore) {
     }
   );
   let mockRespsonse = new MockExpressResponse();
-  await userHandler.createUser(db, mockRequest, mockRespsonse);
+  await app.delegateThread('./userHandler', userHandler.createUser, mockRequest, mockRespsonse);
   let orgUserResp: any;
   await db.collection('orgUsers').doc("jaggerbrulato@gmail.com").get()
     .then(doc => {
@@ -65,7 +66,7 @@ export async function runGetTest(db: firestore.Firestore) {
     }
   );
   let mockRespsonse = new MockExpressResponse();
-  await userHandler.getUser(db, mockRequest, mockRespsonse);
+  await app.delegateThread('./userHandler', userHandler.getUser, mockRequest, mockRespsonse);
   let orgUserResp: any;
   await db.collection('orgUsers').doc("jaggerbrulato@gmail.com").get()
     .then(doc => {
